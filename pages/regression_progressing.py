@@ -14,12 +14,6 @@ potential = st.selectbox(
     'What potential energy function do you want to use in the regression?',
     ('Rydberg Potential', 'Improved Leonard-Jonnes Potential'))
 
-
-input_unit = st.selectbox(
-    'What is the input unit?',
-    ('eV', 'meV', 'kcal-mol', 'cm^-1', 'hartree'))
-
-
 H_uploaded_file = st.file_uploader("upload a file containing the abinitio points for the H configuration")
 X_uploaded_file = st.file_uploader("upload a file containing the abinitio points for the X configuration")
 Z_uploaded_file = st.file_uploader("upload a file containing the abinitio points for the Z configuration")
@@ -28,23 +22,6 @@ Tb_uploaded_file = st.file_uploader("upload a file containing the abinitio point
 L_uploaded_file = st.file_uploader("upload a file containing the abinitio points for the L configuration")
 
 guess = st.checkbox('I would like to make my own initial guess')
-def convert_mev(uploaded_file):
-    data = pd.read_csv(uploaded_file, sep="\s+", header=None)
-
-    data.columns = ["R(Ang)", input_unit ]
-    st.subheader('Input DataFrame')
-    st.write(data)
-
-    data[input_unit] = data[input_unit] - data[input_unit].iloc[-1]
-
-    if input_unit == 'meV':
-        df_final = data[["R(Ang)", 'meV']]
-        st.subheader('Output DataFrame')
-        st.write(df_final)
-        return df_final
-    
-def convert_df(df):
-    return df.to_csv(sep = " ", index = False,header = False).encode('utf-8')       
 
 
 if potential == 'Rydberg Potential' :
@@ -116,21 +93,6 @@ filename = st.text_input('write the name of the output file:')
 if st.button('Calculate'):
 
 
-    data_H = convert_mev(H_uploaded_file)
-    data_X = convert_mev(X_uploaded_file)
-    data_Z = convert_mev(Z_uploaded_file)
-    data_Ta = convert_mev(Ta_uploaded_file)
-    data_Tb = convert_mev(Tb_uploaded_file)
-    data_L = convert_mev(L_uploaded_file)
-
-    dat_H = convert_df(data_H)
-    dat_X = convert_df(data_X)
-    dat_Z = convert_df(data_Z)
-    dat_Ta = convert_df(data_Ta)
-    dat_Tb = convert_df(data_Tb)
-    dat_L = convert_df(data_L)
-    st.write(dat_H)
-
     if potential == 'Rydberg Potential' :
 
         if a1_guess is not None:
@@ -145,9 +107,9 @@ if st.button('Calculate'):
                             a4*y**4 + a5*y**5) * np.exp(-a1*y) + Eref
                 return U
                 
-        if dat_H is not None:
+        if H_uploaded_file is not None:
 
-            data = pd.read_csv(dat_H, sep="\s+", header=None)
+            data = pd.read_csv(H_uploaded_file, sep="\s+", header=None)
             data.columns = ["r", "U sem correc"] 
             st.subheader('Fitting for H...')
 
@@ -205,9 +167,9 @@ if st.button('Calculate'):
             #var = UH.var()
             
 
-        if dat_X is not None:
+        if X_uploaded_file is not None:
 
-            data = pd.read_csv(dat_X, sep="\s+", header=None)
+            data = pd.read_csv(X_uploaded_file, sep="\s+", header=None)
             data.columns = ["r", "U sem correc"] #, "U com correc", "nothing", "nada","nitch"
             st.subheader('Fitting for X...')
 
@@ -241,9 +203,9 @@ if st.button('Calculate'):
 
             st.write(dfX)
 
-        if dat_Z is not None:
+        if Z_uploaded_file is not None:
 
-            data = pd.read_csv(dat_Z, sep="\s+", header=None)
+            data = pd.read_csv(Z_uploaded_file, sep="\s+", header=None)
             data.columns = ["r", "U sem correc"] #, "U com correc", "nothing", "nada","nitch"
             st.subheader('Fitting for Z...')
 
@@ -277,9 +239,9 @@ if st.button('Calculate'):
 
             st.write(dfZ)
 
-        if dat_Ta is not None:
+        if Ta_uploaded_file is not None:
 
-            data = pd.read_csv(dat_Ta, sep="\s+", header=None)
+            data = pd.read_csv(Ta_uploaded_file, sep="\s+", header=None)
             data.columns = ["r", "U sem correc"] #, "U com correc", "nothing", "nada","nitch"
             st.subheader('Fitting for Ta...')
 
@@ -313,9 +275,9 @@ if st.button('Calculate'):
 
             st.write(dfTa)
 
-        if dat_Tb is not None:
+        if Tb_uploaded_file is not None:
 
-            data = pd.read_csv(dat_Tb, sep="\s+", header=None)
+            data = pd.read_csv(Tb_uploaded_file, sep="\s+", header=None)
             data.columns = ["r", "U sem correc"] #, "U com correc", "nothing", "nada","nitch"
             st.subheader('Fitting for Tb...')
 
@@ -350,9 +312,9 @@ if st.button('Calculate'):
             st.write(dfTb)
 
 
-        if dat_L is not None:
+        if L_uploaded_file is not None:
 
-            data = pd.read_csv(dat_L, sep="\s+", header=None)
+            data = pd.read_csv(L_uploaded_file, sep="\s+", header=None)
             data.columns = ["r", "U sem correc"] #, "U com correc", "nothing", "nada","nitch"
             st.subheader('Fitting for L...')
 

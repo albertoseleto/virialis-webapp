@@ -22,7 +22,8 @@ logging.basicConfig(filename='log_information.log', encoding='utf-8', level=logg
 
 st.title('Second Virial Coefficient Calculator for A2B2 Molecule')
 
-uploaded_file = st.file_uploader("upload a file")
+uploaded_file = st.file_uploader("upload a file with mev as the unit of energy")
+
 
 
 potential = st.selectbox(
@@ -53,19 +54,11 @@ if gas_type == 'A2B2':
 
 st.write('The calculus will be made using ', potential,
           'using a temperature step of', step)
+st.write('note that if you have used the regression page, your data has been converted to meV already!')
 
-unit = st.selectbox(
-    'What unit are you using?',
-    ('eV', 'meV', "cm^-1", "kcal/mol"))
 
-if unit == 'eV':
-    rk = constants_ev.rk
-elif unit == 'meV':
-    rk = constants_mev.rk
-elif unit == 'cm^-1':
-    rk = constants_cm.rk
-elif unit == 'kcal/mol':
-    rk = constants_kcalmol.rk
+
+rk = constants_mev.rk
 
 
 class ILJ:
