@@ -32,15 +32,40 @@ def convert_mev(uploaded_file):
     data = pd.read_csv(uploaded_file, sep="\s+", header=None)
 
     data.columns = ["R(Ang)", input_unit ]
-    st.subheader('Input DataFrame')
-    st.write(data)
 
     data[input_unit] = data[input_unit] - data[input_unit].iloc[-1]
 
     if input_unit == 'meV':
         df_final = data[["R(Ang)", 'meV']]
-        st.subheader('Output DataFrame')
-        st.write(df_final)
+
+        return df_final
+    
+    if input_unit == 'eV':
+        data['meV'] = data[input_unit]*1000
+        df_final = data[["R(Ang)", 'meV']]
+
+        return df_final
+    
+        
+    elif input_unit == 'kcal-mol':
+        data['eV'] = data[input_unit]*0.0103641	
+        data['meV'] = data['eV']*1000
+        df_final = data[["R(Ang)", 'meV']]
+
+        return df_final
+
+    elif input_unit == 'hartree':
+        data['eV'] = data[input_unit]*27.2107
+        data['meV'] = data['eV'] * 1000
+        df_final = data[["R(Ang)", 'meV']]
+
+        return df_final
+        
+    elif input_unit == 'cm-1':
+        data['eV'] = data[input_unit]*1.23981e-4
+        data['meV'] = data['eV'] * 1000
+        df_final = data[["R(Ang)", 'meV']]
+
         return df_final
     
 def convert_df(df):
@@ -60,6 +85,22 @@ if potential == 'Rydberg Potential' :
         De_guess = st.text_input('write an initial guess for the value of De:(suggestion: 52.86)')
         Req_guess = st.text_input('write an initial guess for the value of Req:(suggestion: 3.169)')
         Eref_guess = st.text_input('write an initial guess for the value of Eref:(suggestion: 0.016)')
+        if a1_guess == '':
+            a1_guess =  1.86
+        if a2_guess == '':
+            a2_guess =  -1.5
+        if a3_guess == '':
+            a3_guess =  0.99
+        if a4_guess == '':
+            a4_guess =  -0.277
+        if a5_guess == '':
+            a5_guess =  0.0371
+        if De_guess == '':
+            De_guess =  52.86
+        if Req_guess == '':
+            Req_guess =  3.169
+        if Eref_guess == '':
+            Eref_guess =  0.016
 
 
     else:
@@ -123,13 +164,8 @@ if st.button('Calculate'):
     data_Tb = convert_mev(Tb_uploaded_file)
     data_L = convert_mev(L_uploaded_file)
 
-    dat_H = convert_df(data_H)
-    dat_X = convert_df(data_X)
-    dat_Z = convert_df(data_Z)
-    dat_Ta = convert_df(data_Ta)
-    dat_Tb = convert_df(data_Tb)
-    dat_L = convert_df(data_L)
-    st.write(dat_H)
+
+
 
     if potential == 'Rydberg Potential' :
 
@@ -145,10 +181,9 @@ if st.button('Calculate'):
                             a4*y**4 + a5*y**5) * np.exp(-a1*y) + Eref
                 return U
                 
-        if dat_H is not None:
+        if data_H is not None:
 
-            data = pd.read_csv(dat_H, sep="\s+", header=None)
-            data.columns = ["r", "U sem correc"] 
+
             st.subheader('Fitting for H...')
 
             #De_guess = data["U sem correc"].min()
@@ -170,11 +205,10 @@ if st.button('Calculate'):
                 return U
 
 
-            data['r'] = data['r']
             #st.write(data)
 
-            rH = data['r']
-            UH = data['U sem correc']
+            rH = data_H["R(Ang)"]
+            UH = data_H["meV"]
 
             popt, pcov = curve_fit(rydberg, rH, UH, p0,maxfev=10000)
             a1,a2,a3,a4,a5,De, Req,Eref = popt
@@ -205,19 +239,13 @@ if st.button('Calculate'):
             #var = UH.var()
             
 
-        if dat_X is not None:
+        if data_X is not None:
 
-            data = pd.read_csv(dat_X, sep="\s+", header=None)
-            data.columns = ["r", "U sem correc"] #, "U com correc", "nothing", "nada","nitch"
             st.subheader('Fitting for X...')
 
 
-            #data = data.drop(["nothing", "nada","nitch"], axis = 1)
-            data['r'] = data['r']
-            #st.write(data)
-
-            rX = data['r']
-            UX = data['U sem correc']
+            rX = data_X["R(Ang)"]
+            UX = data_X["meV"]
             #p0 = (1.863598546970193,-1.529558156764738, 0.9953471906470752,-0.2776074439976977,0.03718004848996886,52.861310909897924,3.1691244646449928,0.0160366742839507)
             ## Otimização da curva
 
@@ -241,19 +269,13 @@ if st.button('Calculate'):
 
             st.write(dfX)
 
-        if dat_Z is not None:
+        if data_Z is not None:
 
-            data = pd.read_csv(dat_Z, sep="\s+", header=None)
-            data.columns = ["r", "U sem correc"] #, "U com correc", "nothing", "nada","nitch"
             st.subheader('Fitting for Z...')
 
 
-            #data = data.drop(["nothing", "nada","nitch"], axis = 1)
-            data['r'] = data['r']
-            #st.write(data)
-
-            rZ = data['r']
-            UZ = data['U sem correc']
+            rZ = data_Z["R(Ang)"]
+            UZ = data_Z["meV"]
             #p0 = (1.863598546970193,-1.529558156764738, 0.9953471906470752,-0.2776074439976977,0.03718004848996886,52.861310909897924,3.1691244646449928,0.0160366742839507)
             ## Otimização da curva
 
@@ -277,19 +299,13 @@ if st.button('Calculate'):
 
             st.write(dfZ)
 
-        if dat_Ta is not None:
+        if data_Ta is not None:
 
-            data = pd.read_csv(dat_Ta, sep="\s+", header=None)
-            data.columns = ["r", "U sem correc"] #, "U com correc", "nothing", "nada","nitch"
             st.subheader('Fitting for Ta...')
 
 
-            #data = data.drop(["nothing", "nada","nitch"], axis = 1)
-            data['r'] = data['r']
-            #st.write(data)
-
-            rTa = data['r']
-            UTa = data['U sem correc']
+            rTa = data_Ta["R(Ang)"]
+            UTa = data_Ta["meV"]
             #p0 = (1.863598546970193,-1.529558156764738, 0.9953471906470752,-0.2776074439976977,0.03718004848996886,52.861310909897924,3.1691244646449928,0.0160366742839507)
             ## Otimização da curva
 
@@ -313,19 +329,13 @@ if st.button('Calculate'):
 
             st.write(dfTa)
 
-        if dat_Tb is not None:
+        if data_Tb is not None:
 
-            data = pd.read_csv(dat_Tb, sep="\s+", header=None)
-            data.columns = ["r", "U sem correc"] #, "U com correc", "nothing", "nada","nitch"
             st.subheader('Fitting for Tb...')
 
 
-            #data = data.drop(["nothing", "nada","nitch"], axis = 1)
-            data['r'] = data['r']
-            #st.write(data)
-
-            rTb = data['r']
-            UTb = data['U sem correc']
+            rTb = data_Tb["R(Ang)"]
+            UTb = data_Tb["meV"]
             #p0 = (1.863598546970193,-1.529558156764738, 0.9953471906470752,-0.2776074439976977,0.03718004848996886,52.861310909897924,3.1691244646449928,0.0160366742839507)
             ## Otimização da curva
 
@@ -350,19 +360,13 @@ if st.button('Calculate'):
             st.write(dfTb)
 
 
-        if dat_L is not None:
+        if data_L is not None:
 
-            data = pd.read_csv(dat_L, sep="\s+", header=None)
-            data.columns = ["r", "U sem correc"] #, "U com correc", "nothing", "nada","nitch"
             st.subheader('Fitting for L...')
 
 
-            #data = data.drop(["nothing", "nada","nitch"], axis = 1)
-            data['r'] = data['r']
-            #st.write(data)
-
-            rL = data['r']
-            UL = data['U sem correc']
+            rL = data_L["R(Ang)"]
+            UL = data_L["meV"]
             #p0 = (1.863598546970193,-1.529558156764738, 0.9953471906470752,-0.2776074439976977,0.03718004848996886,52.861310909897924,3.1691244646449928,0.0160366742839507)
             ## Otimização da curva
 
@@ -514,10 +518,10 @@ if st.button('Calculate'):
                 n = beta + alpha * (r / Req) ** 2
                 return De * ((mp/(n - mp) * (Req/r) ** n) - (n/(n - mp) * (Req/r) ** mp))
                 
-        if H_uploaded_file is not None:
+        if data_H is not None:
 
-            data = pd.read_csv(H_uploaded_file, sep="\s+", header=None)
-            data.columns = ["r", "U sem correc"] 
+            '''data = pd.read_csv(H_uploaded_file, sep="\s+", header=None)
+            data.columns = ["r", "U sem correc"] '''
             st.subheader('Fitting for H')
 
             #De_guess = data["U sem correc"].min()
@@ -537,12 +541,8 @@ if st.button('Calculate'):
                 return De_guess * ((mp_guess/(n - mp_guess) * (Req_guess/r) ** n) - (n/(n - mp_guess) * (Req_guess/r) ** mp_guess))
 
 
-            data['r'] = data['r']
-            #st.write(data)
-
-            rH = data['r']
-            UH = data['U sem correc']
-
+            rH = data_H["R(Ang)"]
+            UH = data_H["meV"]
             popt, pcov = curve_fit(ILJ, rH, UH, p0,maxfev=5000)
             alpha,beta,mp, De, Req = popt
             yfitted = ILJ(rH,alpha,beta,mp, De, Req)
@@ -572,19 +572,16 @@ if st.button('Calculate'):
             #var = UH.var()
             
 
-        if X_uploaded_file is not None:
+        if data_X is not None:
 
-            data = pd.read_csv(X_uploaded_file, sep="\s+", header=None)
-            data.columns = ["r", "U sem correc"] #, "U com correc", "nothing", "nada","nitch"
+            
             st.subheader('Fitting for X')
 
 
             #data = data.drop(["nothing", "nada","nitch"], axis = 1)
-            data['r'] = data['r']
-            #st.write(data)
+            rX = data_X["R(Ang)"]
+            UX = data_X["meV"]
 
-            rX = data['r']
-            UX = data['U sem correc']
             #p0 = (1.863598546970193,-1.529558156764738, 0.9953471906470752,-0.2776074439976977,0.03718004848996886,52.861310909897924,3.1691244646449928,0.0160366742839507)
             ## Otimização da curva
 
@@ -608,19 +605,16 @@ if st.button('Calculate'):
 
             st.write(dfX)
 
-        if Z_uploaded_file is not None:
+        if data_Z is not None:
 
-            data = pd.read_csv(Z_uploaded_file, sep="\s+", header=None)
-            data.columns = ["r", "U sem correc"] #, "U com correc", "nothing", "nada","nitch"
             st.subheader('Fitting for Z')
 
 
             #data = data.drop(["nothing", "nada","nitch"], axis = 1)
-            data['r'] = data['r']
             #st.write(data)
 
-            rZ = data['r']
-            UZ = data['U sem correc']
+            rZ = data_Z["R(Ang)"]
+            UZ = data_Z["meV"]
             #p0 = (1.863598546970193,-1.529558156764738, 0.9953471906470752,-0.2776074439976977,0.03718004848996886,52.861310909897924,3.1691244646449928,0.0160366742839507)
             ## Otimização da curva
 
@@ -644,19 +638,10 @@ if st.button('Calculate'):
 
             st.write(dfZ)
 
-        if Ta_uploaded_file is not None:
-
-            data = pd.read_csv(Ta_uploaded_file, sep="\s+", header=None)
-            data.columns = ["r", "U sem correc"] #, "U com correc", "nothing", "nada","nitch"
+        if data_Ta is not None:
             st.subheader('Fitting for Ta')
-
-
-            #data = data.drop(["nothing", "nada","nitch"], axis = 1)
-            data['r'] = data['r']
-            #st.write(data)
-
-            rTa = data['r']
-            UTa = data['U sem correc']
+            rTa = data_Ta["R(Ang)"]
+            UTa = data_Ta["meV"]
             #p0 = (1.863598546970193,-1.529558156764738, 0.9953471906470752,-0.2776074439976977,0.03718004848996886,52.861310909897924,3.1691244646449928,0.0160366742839507)
             ## Otimização da curva
 
@@ -680,19 +665,12 @@ if st.button('Calculate'):
 
             st.write(dfTa)
 
-        if Tb_uploaded_file is not None:
-
-            data = pd.read_csv(Tb_uploaded_file, sep="\s+", header=None)
-            data.columns = ["r", "U sem correc"] #, "U com correc", "nothing", "nada","nitch"
+        if data_Tb is not None:
             st.subheader('Fitting for Tb')
 
 
-            #data = data.drop(["nothing", "nada","nitch"], axis = 1)
-            data['r'] = data['r']
-            #st.write(data)
-
-            rTb = data['r']
-            UTb = data['U sem correc']
+            rTb = data_Tb["R(Ang)"]
+            UTb = data_Tb["meV"]
             #p0 = (1.863598546970193,-1.529558156764738, 0.9953471906470752,-0.2776074439976977,0.03718004848996886,52.861310909897924,3.1691244646449928,0.0160366742839507)
             ## Otimização da curva
 
@@ -717,19 +695,13 @@ if st.button('Calculate'):
             st.write(dfTb)
 
 
-        if L_uploaded_file is not None:
+        if data_L is not None:
 
-            data = pd.read_csv(L_uploaded_file, sep="\s+", header=None)
-            data.columns = ["r", "U sem correc"] #, "U com correc", "nothing", "nada","nitch"
             st.subheader('Fitting for L')
 
+            rL = data_L["R(Ang)"]
+            UL = data_L["meV"]
 
-            #data = data.drop(["nothing", "nada","nitch"], axis = 1)
-            data['r'] = data['r']
-            #st.write(data)
-
-            rL = data['r']
-            UL = data['U sem correc']
             #p0 = (1.863598546970193,-1.529558156764738, 0.9953471906470752,-0.2776074439976977,0.03718004848996886,52.861310909897924,3.1691244646449928,0.0160366742839507)
             ## Otimização da curva
 

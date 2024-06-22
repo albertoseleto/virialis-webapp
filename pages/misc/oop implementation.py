@@ -22,8 +22,7 @@ logging.basicConfig(filename='log_information.log', encoding='utf-8', level=logg
 
 st.title('Second Virial Coefficient Calculator for A2B2 Molecule')
 
-uploaded_file = st.file_uploader("upload a file with mev as the unit of energy")
-
+uploaded_file = st.file_uploader("upload a file")
 
 
 potential = st.selectbox(
@@ -54,11 +53,19 @@ if gas_type == 'A2B2':
 
 st.write('The calculus will be made using ', potential,
           'using a temperature step of', step)
-st.write('note that if you have used the regression page, your data has been converted to meV already!')
 
+unit = st.selectbox(
+    'What unit are you using?',
+    ('eV', 'meV', "cm^-1", "kcal/mol"))
 
-
-rk = constants_mev.rk
+if unit == 'eV':
+    rk = constants_ev.rk
+elif unit == 'meV':
+    rk = constants_mev.rk
+elif unit == 'cm^-1':
+    rk = constants_cm.rk
+elif unit == 'kcal/mol':
+    rk = constants_kcalmol.rk
 
 
 class ILJ:
@@ -1150,6 +1157,9 @@ class Mean_req:
                 self.data.loc[3, 'Req'], self.data.loc[0, 'Req'], self.data.loc[0, 'Req']]
 
         return mean(Reqs)
+B_clas = []
+Tstr = []
+B_main = []
 
 
 class Calculate_virialis:
@@ -1158,10 +1168,6 @@ class Calculate_virialis:
         self.mean_req_instance = mean_req_instance
         self.temperature_instance = temperature_instance
         #st.write('calculate_virial criada')
-        self.B_clas = []
-        self.Tstr = []
-        self.B_main = []
-
 
     def compute_results_main(self):
 
@@ -1186,12 +1192,14 @@ class Calculate_virialis:
         result_c4  = integ(self.integrand_instance.integrand_c4, nitn=10, neval=10000)
         st.write('result_c4 = ', result_c4)
         
-        self.B_clas.append(result.mean)
-        self.Tstr.append(temp)
-        self.B_main.append(result.mean + result_c1.mean + result_c2.mean + result_c3.mean + result_c4.mean)
+        B_clas.append(result.mean)
 
-        return self.B_clas, self.Tstr, self.B_main
-        
+        Tstr.append(temp)
+        B_main.append(result.mean + result_c1.mean + result_c2.mean + result_c3.mean + result_c4.mean)
+        #logging.info(f"Integration for temperature {temp} completed")
+
+        return B_clas, Tstr, B_main
+    
     
     
 class graph_gen:
